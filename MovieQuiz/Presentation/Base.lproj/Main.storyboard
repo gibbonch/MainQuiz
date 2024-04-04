@@ -52,6 +52,10 @@
                                             <constraint firstAttribute="width" secondItem="rO0-j5-Gvx" secondAttribute="height" multiplier="2:3" id="UHJ-N9-GgL"/>
                                         </constraints>
                                         <userDefinedRuntimeAttributes>
+                                            <userDefinedRuntimeAttribute type="boolean" keyPath="layer.masksToBounds" value="YES"/>
+                                            <userDefinedRuntimeAttribute type="number" keyPath="layer.borderWidth">
+                                                <integer key="value" value="8"/>
+                                            </userDefinedRuntimeAttribute>
                                             <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
                                                 <integer key="value" value="20"/>
                                             </userDefinedRuntimeAttribute>
