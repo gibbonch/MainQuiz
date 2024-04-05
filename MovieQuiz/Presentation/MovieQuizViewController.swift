@@ -2,7 +2,7 @@ import UIKit
 
 final class MovieQuizViewController: UIViewController {
     
-    // MARK: -  UI Elements
+    // MARK: -  Outlets
     
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var textLabel: UILabel!
@@ -118,6 +118,8 @@ final class MovieQuizViewController: UIViewController {
     }
 }
 
+// MARK: MovieQuizViewController Extensions
+
 extension MovieQuizViewController: QuestionFactoryDelegate {
     func didReceiveNextQuestion(question: QuizQuestion?) {
         guard let question else {
@@ -129,6 +131,14 @@ extension MovieQuizViewController: QuestionFactoryDelegate {
         
         DispatchQueue.main.async { [weak self] in
             self?.show(quiz: viewModel)
+        }
+    }
+}
+
+extension MovieQuizViewController: AlertPresenterDelegate {
+    func presentAlert(_ alert: UIAlertController) {
+        DispatchQueue.main.async { [weak self] in
+            self?.present(alert, animated: true, completion: nil)
         }
     }
 }

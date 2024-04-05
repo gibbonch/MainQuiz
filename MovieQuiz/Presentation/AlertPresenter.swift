@@ -1,7 +1,9 @@
 import UIKit
 
+// MARK: - Creates an alert and delegates its presentation
+
 class AlertPresenter {
-    weak var delegate: MovieQuizViewController?
+    weak var delegate: AlertPresenterDelegate?
     
     init(delegate: MovieQuizViewController?) {
         self.delegate = delegate
@@ -16,6 +18,6 @@ class AlertPresenter {
         }
         alert.addAction(action)
         
-        delegate?.present(alert, animated: true, completion: nil)
+        delegate?.presentAlert(alert)
     }
 }
