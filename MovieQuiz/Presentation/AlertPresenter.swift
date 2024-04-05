@@ -1,6 +1,6 @@
 import UIKit
 
-// MARK: - Creates an alert and delegates its presentation
+// MARK: - Creates an alert and delegates its presentation to AlertPresenterDelegate (MovieQuizVC)
 
 class AlertPresenter {
     weak var delegate: AlertPresenterDelegate?
@@ -18,6 +18,6 @@ class AlertPresenter {
         }
         alert.addAction(action)
         
-        delegate?.presentAlert(alert)
+        delegate?.didRecieveAlert(alert)
     }
 }

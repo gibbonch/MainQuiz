@@ -136,7 +136,9 @@ extension MovieQuizViewController: QuestionFactoryDelegate {
 }
 
 extension MovieQuizViewController: AlertPresenterDelegate {
-    func presentAlert(_ alert: UIAlertController) {
+    // Through this method VC gets notification from Alert Presenter
+    // that alert is ready for presentation
+    func didRecieveAlert(_ alert: UIAlertController) {
         DispatchQueue.main.async { [weak self] in
             self?.present(alert, animated: true, completion: nil)
         }
