@@ -1,15 +1,15 @@
-import UIKit
+import Foundation
 
-struct AlertModel {
+struct QuizResultsViewModel {
     let title: String
-    let message: String
+    let text: String
     let buttonText: String
     
     init(title: String = "Раунд окончен!",
-         message: String,
+         text: String,
          buttonText: String = "Сыграть еще раз") {
         self.title = title
-        self.message = message
+        self.text = text
         self.buttonText = buttonText
     }
 }

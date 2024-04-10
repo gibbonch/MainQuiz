@@ -22,6 +22,7 @@ final class MovieQuizViewController: UIViewController {
     
     private var questionFactory: QuestionFactoryProtocol?
     private var alertPresenter: AlertPresenter?
+    private var statisticService: StatisticService?
     
     
     // MARK: - Lifecicle
@@ -33,6 +34,8 @@ final class MovieQuizViewController: UIViewController {
         questionFactory?.requestNextQuestion()
         
         alertPresenter = AlertPresenter(delegate: self)
+        
+        statisticService = StatisticServiceImplementation()
     }
     
     // MARK: - Actions
@@ -78,7 +81,9 @@ final class MovieQuizViewController: UIViewController {
             imageView.layer.borderColor = UIColor.ypRed.cgColor
         }
         
-        lockButtons()
+        yesButton.isUserInteractionEnabled = false
+        noButton.isUserInteractionEnabled = false
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             self?.showNextQuestionOrResult()
         }
@@ -86,39 +91,23 @@ final class MovieQuizViewController: UIViewController {
     
     private func showNextQuestionOrResult() {
         if isLastQuestion {
-            let text = "Ваш результат: \(correctAnswers)/10"
-            let completion: () -> Void = { [weak self] in
-                self?.currentQuestionIndex = 0
-                self?.correctAnswers = 0
-                self?.questionFactory?.requestNextQuestion()
-            }
+            guard let statisticService else { return }
+            statisticService.store(correct: correctAnswers, total: questionsAmount)
             
-            let model = AlertModel(title: "Раунд окончен!",
-                                   message: text,
-                                   buttonText: "Сыграть еще раз",
-                                   completion: completion)
-            
-            alertPresenter?.show(alert: model)
+            let quizResultHandler = QuizResultHandler(statisticService: statisticService)
+            let result = quizResultHandler.handleQuizResult(correctAnswers, questionsAmount)
+            alertPresenter?.show(quiz: result)
         } else {
             currentQuestionIndex += 1
             questionFactory?.requestNextQuestion()
         }
         
-        unlockButtons()
-    }
-    
-    private func lockButtons() {
-        yesButton.isUserInteractionEnabled = false
-        noButton.isUserInteractionEnabled = false
-    }
-    
-    private func unlockButtons() {
         yesButton.isUserInteractionEnabled = true
         noButton.isUserInteractionEnabled = true
     }
 }
 
-// MARK: MovieQuizViewController Extensions
+// MARK: - MovieQuizViewController Extensions
 
 extension MovieQuizViewController: QuestionFactoryDelegate {
     func didReceiveNextQuestion(question: QuizQuestion?) {
@@ -136,12 +125,16 @@ extension MovieQuizViewController: QuestionFactoryDelegate {
 }
 
 extension MovieQuizViewController: AlertPresenterDelegate {
-    // Through this method VC gets notification from Alert Presenter
-    // that alert is ready for presentation
-    func didRecieveAlert(_ alert: UIAlertController) {
-        DispatchQueue.main.async { [weak self] in
-            self?.present(alert, animated: true, completion: nil)
-        }
+    func didAletCompleted() {
+        currentQuestionIndex = 0
+        correctAnswers = 0
+        questionFactory?.requestNextQuestion()
     }
 }
+
+
+
+
+
+
 
