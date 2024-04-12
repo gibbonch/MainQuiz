@@ -2,6 +2,10 @@ import Foundation
 
 final class StatisticServiceImplementation: StatisticService {
     
+    private enum Keys: String, CaseIterable {
+        case correct, total, bestGame, gamesCount
+    }
+    
     private let userDefaults = UserDefaults.standard
     
     var totalAccuracy: Double {
@@ -24,7 +28,7 @@ final class StatisticServiceImplementation: StatisticService {
         get {
             guard let data = userDefaults.data(forKey: Keys.bestGame.rawValue),
                   let record = try? JSONDecoder().decode(GameRecord.self, from: data) else {
-                return .init(correct: 0, total: 0, data: Date())
+                return .init(correct: 0, total: 0, date: Date())
             }
             return record
         }
@@ -38,17 +42,15 @@ final class StatisticServiceImplementation: StatisticService {
     }
     
     init() {
-        if !areAllKeysPresent() {
-            print("!!!")
-            userDefaults.set(0, forKey: Keys.correct.rawValue)
-            userDefaults.set(0, forKey: Keys.total.rawValue)
-            userDefaults.set(0, forKey: Keys.gamesCount.rawValue)
-            bestGame = GameRecord(correct: 0, total: 0, data: Date())
-        }
+        guard !areAllKeysPresent() else { return }
+        userDefaults.set(0, forKey: Keys.correct.rawValue)
+        userDefaults.set(0, forKey: Keys.total.rawValue)
+        userDefaults.set(0, forKey: Keys.gamesCount.rawValue)
+        bestGame = GameRecord(correct: 0, total: 0, date: Date())
     }
     
     func store(correct count: Int, total amount: Int) {
-        let currentRecord = GameRecord(correct: count, total: amount, data: Date())
+        let currentRecord = GameRecord(correct: count, total: amount, date: Date())
         if currentRecord.isBetter(than: bestGame) {
             bestGame = currentRecord
         }
@@ -72,7 +74,4 @@ final class StatisticServiceImplementation: StatisticService {
         return true
     }
     
-    private enum Keys: String, CaseIterable {
-        case correct, total, bestGame, gamesCount
-    }
 }

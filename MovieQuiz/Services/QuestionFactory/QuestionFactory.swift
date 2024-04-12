@@ -2,7 +2,8 @@ import Foundation
 
 // MARK: QuestionFactory class contains mock data and generates random question
 
-class QuestionFactory: QuestionFactoryProtocol {
+final class QuestionFactory: QuestionFactoryProtocol {
+    
     private let questions: [QuizQuestion] = [
         QuizQuestion(image: "The Godfather",
                      text: "Рейтинг этого фильма больше чем 6?",
@@ -47,8 +48,7 @@ class QuestionFactory: QuestionFactoryProtocol {
             delegate?.didReceiveNextQuestion(question: nil)
             return
         }
-        
         delegate?.didReceiveNextQuestion(question: questions[safe: index])
     }
-
+    
 }

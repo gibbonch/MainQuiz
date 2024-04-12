@@ -20,10 +20,10 @@ final class MovieQuizViewController: UIViewController {
         return currentQuestionIndex == questionsAmount - 1
     }
     
+    // Services
     private var questionFactory: QuestionFactoryProtocol?
     private var alertPresenter: AlertPresenter?
     private var statisticService: StatisticService?
-    
     
     // MARK: - Lifecicle
     
@@ -31,11 +31,9 @@ final class MovieQuizViewController: UIViewController {
         super.viewDidLoad()
         
         questionFactory = QuestionFactory(delegate: self)
-        questionFactory?.requestNextQuestion()
-        
         alertPresenter = AlertPresenter(delegate: self)
-        
         statisticService = StatisticServiceImplementation()
+        questionFactory?.requestNextQuestion()
     }
     
     // MARK: - Actions
@@ -43,33 +41,27 @@ final class MovieQuizViewController: UIViewController {
     @IBAction private func yesButtonClicked(_ sender: Any) {
         let givenAnswer = true
         guard let currentQuestion else { return }
-        let correctAnswer = currentQuestion.correctAnswer
-        
-        showAnswerResult(isCorrect: givenAnswer == correctAnswer)
+        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
     
     @IBAction private func noButtonClicked(_ sender: Any) {
         let givenAnswer = false
         guard let currentQuestion else { return }
-        let correctAnswer = currentQuestion.correctAnswer
-        
-        showAnswerResult(isCorrect: givenAnswer == correctAnswer)
+        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
     
     // MARK: - Methods
     
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        let questionStep = QuizStepViewModel(image: UIImage(named: model.image) ?? UIImage(),
-                                             question: model.text,
-                                             quesionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-        return questionStep
+        QuizStepViewModel(image: UIImage(named: model.image) ?? UIImage(),
+                          question: model.text,
+                          quesionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
     }
     
     private func show(quiz step: QuizStepViewModel) {
         imageView.image = step.image
         textLabel.text = step.question
         counterLabel.text = step.quesionNumber
-        
         imageView.layer.borderColor = UIColor.ypBlack.cgColor
     }
     
@@ -80,10 +72,8 @@ final class MovieQuizViewController: UIViewController {
         } else {
             imageView.layer.borderColor = UIColor.ypRed.cgColor
         }
-        
         yesButton.isUserInteractionEnabled = false
         noButton.isUserInteractionEnabled = false
-        
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             self?.showNextQuestionOrResult()
         }
@@ -91,30 +81,37 @@ final class MovieQuizViewController: UIViewController {
     
     private func showNextQuestionOrResult() {
         if isLastQuestion {
-            guard let statisticService else { return }
-            statisticService.store(correct: correctAnswers, total: questionsAmount)
-            
-            let quizResultHandler = QuizResultHandler(statisticService: statisticService)
-            let result = quizResultHandler.handleQuizResult(correctAnswers, questionsAmount)
+            statisticService?.store(correct: correctAnswers, total: questionsAmount)
+            let result = handleQuizResult()
             alertPresenter?.show(quiz: result)
         } else {
             currentQuestionIndex += 1
             questionFactory?.requestNextQuestion()
         }
-        
         yesButton.isUserInteractionEnabled = true
         noButton.isUserInteractionEnabled = true
     }
+    
+    private func handleQuizResult() -> QuizResultsViewModel {
+        guard let statisticService else {
+            return QuizResultsViewModel(text: "")
+        }
+        let message = """
+                Ваш результат: \(correctAnswers)/\(questionsAmount)
+                Количество сыгранных квизов: \(statisticService.gamesCount)
+                Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(statisticService.bestGame.date.dateTimeString))
+                Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%
+        """
+        return QuizResultsViewModel(text: message)
+    }
+    
 }
 
 // MARK: - MovieQuizViewController Extensions
 
 extension MovieQuizViewController: QuestionFactoryDelegate {
     func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question else {
-            return
-        }
-        
+        guard let question else { return }
         let viewModel = convert(model: question)
         currentQuestion = question
         
@@ -131,10 +128,3 @@ extension MovieQuizViewController: AlertPresenterDelegate {
         questionFactory?.requestNextQuestion()
     }
 }
-
-
-
-
-
-
-
