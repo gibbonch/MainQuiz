@@ -8,7 +8,7 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet private weak var counterLabel: UILabel!
     @IBOutlet private weak var yesButton: UIButton!
     @IBOutlet private weak var noButton: UIButton!
-    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
+    @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
     
     // MARK: - Properties
     private var correctAnswers = 0
@@ -124,6 +124,7 @@ extension MovieQuizViewController {
                                buttonText: "Сыграть еще раз") { [weak self] in
             self?.currentQuestionIndex = 0
             self?.correctAnswers = 0
+            self?.showLoadingIndicator()
             self?.questionFactory?.requestNextQuestion()
         }
         alertPresenter.show(alert: model, in: self)
@@ -156,6 +157,7 @@ extension MovieQuizViewController: QuestionFactoryDelegate {
         guard let question else {
             return
         }
+        hideLoadingIndicator()
         currentQuestion = question
         let viewModel = convert(model: question)
         DispatchQueue.main.async { [weak self] in
