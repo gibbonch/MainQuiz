@@ -2,7 +2,7 @@ import UIKit
 
 final class MovieQuizPresenter {
     // MARK: - Properties
-    private weak var viewController: MovieQuizViewController?
+    private weak var viewController: MovieQuizViewControllerProtocol?
     
     // Services
     private var questionFactory: QuestionFactoryProtocol?
@@ -15,7 +15,7 @@ final class MovieQuizPresenter {
     private var currentQuestionIndex = 0
     
     // MARK: - init
-    init(viewController: MovieQuizViewController) {
+    init(viewController: MovieQuizViewControllerProtocol) {
         self.viewController = viewController
         
         questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
@@ -86,10 +86,10 @@ final class MovieQuizPresenter {
         return resultMessage
     }
     
-    private func convert(model: QuizQuestion) -> QuizStepViewModel {
+    func convert(model: QuizQuestion) -> QuizStepViewModel {
         QuizStepViewModel(image: UIImage(data: model.image) ?? UIImage(),
                           question: model.text,
-                          quesionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
+                          questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
     }
     
     private func isLastQuestion() -> Bool {
@@ -117,6 +117,7 @@ extension MovieQuizPresenter: QuestionFactoryDelegate {
         }
         currentQuestion = question
         let viewModel = convert(model: question)
+        
         DispatchQueue.main.async { [weak self] in
             self?.viewController?.show(quiz: viewModel)
         }

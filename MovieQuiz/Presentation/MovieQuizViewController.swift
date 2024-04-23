@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController {
+final class MovieQuizViewController: UIViewController, MovieQuizViewControllerProtocol {
     
     // MARK: -  Outlets
     @IBOutlet private weak var imageView: UIImageView!
@@ -37,16 +37,12 @@ final class MovieQuizViewController: UIViewController {
     func show(quiz step: QuizStepViewModel) {
         imageView.image = step.image
         textLabel.text = step.question
-        counterLabel.text = step.quesionNumber
+        counterLabel.text = step.questionNumber
         imageView.layer.borderColor = UIColor.ypBlack.cgColor
         
         hideLoadingIndicator()
         unlockButtons()
     }
-    
-    func highlightImageBorder(isCorrectAnswer: Bool) {
-           imageView.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
-       }
     
     func showNetworkError(message: String, handler: @escaping () -> Void) {
         let model = AlertModel(title: "Ошибка",
@@ -68,6 +64,10 @@ final class MovieQuizViewController: UIViewController {
         }
         alertPresenter.show(alert: model, in: self)
     }
+    
+    func highlightImageBorder(isCorrectAnswer: Bool) {
+           imageView.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
+       }
     
     func showLoadingIndicator() {
         activityIndicator.isHidden = false
