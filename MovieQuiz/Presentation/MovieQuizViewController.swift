@@ -12,16 +12,15 @@ final class MovieQuizViewController: UIViewController {
     
     // MARK: - Properties
     private var correctAnswers = 0
-    private var currentQuestionIndex = 0
-    private let questionsAmount = 10
     private var currentQuestion: QuizQuestion?
-    private var isLastQuestion: Bool {
-        return currentQuestionIndex == questionsAmount - 1
-    }
     
+    // Services
     private var questionFactory: QuestionFactoryProtocol?
     private var statisticService: StatisticService?
     private var alertPresenter = AlertPresenter()
+    
+    // Presenter
+    private let presenter = MovieQuizPresenter()
     
     // MARK: - Lifecicle
     override func viewDidLoad() {
@@ -83,20 +82,14 @@ extension MovieQuizViewController {
     }
     
     private func showNextQuestionOrResult() {
-        if isLastQuestion {
-            statisticService?.store(correct: correctAnswers, total: questionsAmount)
+        if presenter.isLastQuestion() {
+            statisticService?.store(correct: correctAnswers, total: presenter.questionsAmount)
             showQuizStatistic()
         } else {
-            currentQuestionIndex += 1
+            presenter.switchToNextQuestion()
             showLoadingIndicator()
             questionFactory?.requestNextQuestion()
         }
-    }
-    
-    private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        QuizStepViewModel(image: UIImage(data: model.image) ?? UIImage(),
-                          question: model.text,
-                          quesionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
     }
     
     private func showNetworkError(message: String) {
@@ -104,7 +97,7 @@ extension MovieQuizViewController {
         let model = AlertModel(title: "Ошибка",
                                message: message,
                                buttonText: "Попробовать ещё раз") { [weak self] in
-            self?.currentQuestionIndex = 0
+            self?.presenter.resetQuestionIndex()
             self?.correctAnswers = 0
             self?.questionFactory?.loadData()
         }
@@ -116,7 +109,7 @@ extension MovieQuizViewController {
             return
         }
         let message = """
-            Ваш результат: \(correctAnswers)/\(questionsAmount)
+            Ваш результат: \(correctAnswers)/\(presenter.questionsAmount)
             Количество сыгранных квизов: \(statisticService.gamesCount)
             Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(statisticService.bestGame.date.dateTimeString))
             Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%
@@ -124,7 +117,7 @@ extension MovieQuizViewController {
         let model = AlertModel(title: "Раунд окончен!",
                                message: message,
                                buttonText: "Сыграть ещё раз") { [weak self] in
-            self?.currentQuestionIndex = 0
+            self?.presenter.resetQuestionIndex()
             self?.correctAnswers = 0
             self?.showLoadingIndicator()
             self?.questionFactory?.requestNextQuestion()
@@ -160,7 +153,7 @@ extension MovieQuizViewController: QuestionFactoryDelegate {
             return
         }
         currentQuestion = question
-        let viewModel = convert(model: question)
+        let viewModel = presenter.convert(model: question)
         DispatchQueue.main.async { [weak self] in
             self?.show(quiz: viewModel)
         }
