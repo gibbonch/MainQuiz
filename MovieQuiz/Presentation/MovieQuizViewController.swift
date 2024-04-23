@@ -12,7 +12,7 @@ final class MovieQuizViewController: UIViewController {
     
     // MARK: - Properties
     private var correctAnswers = 0
-    private var currentQuestion: QuizQuestion?
+    var currentQuestion: QuizQuestion?
     
     // Services
     private var questionFactory: QuestionFactoryProtocol?
@@ -26,6 +26,8 @@ final class MovieQuizViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        presenter.viewController = self
+        
         questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
         statisticService = StatisticServiceImplementation()
         
@@ -35,29 +37,16 @@ final class MovieQuizViewController: UIViewController {
     
     // MARK: - IBAction Methods
     @IBAction private func yesButtonClicked(_ sender: Any) {
-        guard let currentQuestion else {
-            return
-        }
-        lockButtons()
-        let givenAnswer = true
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            self?.showNextQuestionOrResult()
-        }
+        presenter.currentQuestion = currentQuestion
+        presenter.yesButtonClicked()
     }
     
     @IBAction private func noButtonClicked(_ sender: Any) {
         guard let currentQuestion else {
             return
         }
-        lockButtons()
-        let givenAnswer = false
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            self?.showNextQuestionOrResult()
-        }
+        presenter.currentQuestion = currentQuestion
+        presenter.noButtonClicked()
     }
 }
 
@@ -72,16 +61,20 @@ extension MovieQuizViewController {
         unlockButtons()
     }
     
-    private func showAnswerResult(isCorrect: Bool) {
+    func showAnswerResult(isCorrect: Bool) {
         if isCorrect {
             correctAnswers += 1
             imageView.layer.borderColor = UIColor.ypGreen.cgColor
         } else {
             imageView.layer.borderColor = UIColor.ypRed.cgColor
         }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.showNextQuestionOrResult()
+        }
     }
     
-    private func showNextQuestionOrResult() {
+    func showNextQuestionOrResult() {
         if presenter.isLastQuestion() {
             statisticService?.store(correct: correctAnswers, total: presenter.questionsAmount)
             showQuizStatistic()
@@ -125,12 +118,12 @@ extension MovieQuizViewController {
         alertPresenter.show(alert: model, in: self)
     }
     
-    private func lockButtons() {
+    func lockButtons() {
         yesButton.isUserInteractionEnabled = false
         noButton.isUserInteractionEnabled = false
     }
     
-    private func unlockButtons() {
+    func unlockButtons() {
         yesButton.isUserInteractionEnabled = true
         noButton.isUserInteractionEnabled = true
     }
