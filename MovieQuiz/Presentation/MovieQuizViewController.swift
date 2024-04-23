@@ -65,6 +65,7 @@ final class MovieQuizViewController: UIViewController {
 // MARK: - Private Methods
 extension MovieQuizViewController {
     private func show(quiz step: QuizStepViewModel) {
+        hideLoadingIndicator()
         imageView.image = step.image
         textLabel.text = step.question
         counterLabel.text = step.quesionNumber
@@ -87,6 +88,7 @@ extension MovieQuizViewController {
             showQuizStatistic()
         } else {
             currentQuestionIndex += 1
+            showLoadingIndicator()
             questionFactory?.requestNextQuestion()
         }
     }
@@ -121,7 +123,7 @@ extension MovieQuizViewController {
         """
         let model = AlertModel(title: "Раунд окончен!",
                                message: message,
-                               buttonText: "Сыграть еще раз") { [weak self] in
+                               buttonText: "Сыграть ещё раз") { [weak self] in
             self?.currentQuestionIndex = 0
             self?.correctAnswers = 0
             self?.showLoadingIndicator()
@@ -157,7 +159,6 @@ extension MovieQuizViewController: QuestionFactoryDelegate {
         guard let question else {
             return
         }
-        hideLoadingIndicator()
         currentQuestion = question
         let viewModel = convert(model: question)
         DispatchQueue.main.async { [weak self] in
@@ -166,12 +167,22 @@ extension MovieQuizViewController: QuestionFactoryDelegate {
     }
     
     func didLoadDataFromServer() {
-        hideLoadingIndicator()
         questionFactory?.requestNextQuestion()
     }
     
     func didFailToLoadData(with error: Error) {
-        showNetworkError(message: error.localizedDescription)
+        let errorMessage = "Не удалось загрузить вопросы"
+        showNetworkError(message: errorMessage)
+    }
+    
+    func didFailToLoadImage() {
+        hideLoadingIndicator()
+        let model = AlertModel(title: "Ошибка",
+                               message: "Не удалось загрузить изображение",
+                               buttonText: "Попробовать ещё раз") { [weak self] in
+            self?.questionFactory?.requestNextQuestion()
+        }
+        alertPresenter.show(alert: model, in: self)
     }
 }
 
