@@ -1,4 +1,4 @@
-import UIKit
+import Foundation
 
 final class MovieQuizPresenter {
     // MARK: - Properties
@@ -87,7 +87,7 @@ final class MovieQuizPresenter {
     }
     
     func convert(model: QuizQuestion) -> QuizStepViewModel {
-        QuizStepViewModel(image: UIImage(data: model.image) ?? UIImage(),
+        QuizStepViewModel(imageData: model.image,
                           question: model.text,
                           questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
     }
